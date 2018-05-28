@@ -4,6 +4,11 @@ const url = require('url');
 
 function getContentType(url) {
     //todo
+    /* if (url.indexOf('.css') !== -1) {
+        return 'text/css';
+    } else {
+        return 'text/html';
+    } */
 }
 
 module.exports = (req, res) => {
@@ -11,7 +16,7 @@ module.exports = (req, res) => {
 
     if (req.pathname.startsWith('/content/') && req.method === 'GET') {
         let filePath = path.normalize(
-            path.join(__dirname, '..${req.pathname}')
+            path.join(__dirname, `..${req.pathname}`)
         );
 
         fs.readFile(filePath, (err, data) => {
@@ -30,6 +35,7 @@ module.exports = (req, res) => {
             });
 
             // TODO: Send data and end response
+            
         })
     } else {
         return true;
