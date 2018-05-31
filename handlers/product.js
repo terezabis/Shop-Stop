@@ -16,9 +16,32 @@ module.exports = (req, res) => {
                 console.log(err);
             }
 
-            //TODO send response
+            res.write(data);
+            res.end();
+        });
+    } else if(req.pathname === '/product/add' && req.method === 'POST') {
+        let dataString = '';
+
+        req.on('data', (data) => {
+            dataString +=data;
+        });
+
+        req.on('end', (data) => {
+            let product = qs.parse(dataString);
+            database.products.add(product);
+
+            res.writeHead(302, {
+                Location: '/'
+            });
+    
+            res.end();
         });
     } else {
-        return true;
+        res.writeHead(404, {
+            'Content-Type': 'text/plain'
+        });
+
+        res.write('Bad request!');
+        res.end();
     }
 }

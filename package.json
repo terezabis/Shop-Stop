@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/terezabis/Shop-Stop/issues"
   },
-  "homepage": "https://github.com/terezabis/Shop-Stop#readme"
+  "homepage": "https://github.com/terezabis/Shop-Stop#readme",
+  "dependencies": {
+    "qs": "^6.5.2"
+  }
 }
