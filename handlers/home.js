@@ -6,7 +6,6 @@ var qs = require('qs');
 
 module.exports = (req, res) => {
     req.pathname = req.pathname || url.parse(req.url).pathname;
-
     if(req.pathname === '/' && req.method === 'GET'){
         //path module is just utility..
         let filePath = path.normalize(
@@ -32,7 +31,7 @@ module.exports = (req, res) => {
             let queryData = qs.parse(url.parse(req.url).query);
             let products = database.products.getAll();
             if(queryData.query){
-                products = products.filter(prod => prod.name == queryData.query);
+                products = products.filter(prod => prod.name.includes(queryData.query));
             }
 
             let content = '';
@@ -48,7 +47,7 @@ module.exports = (req, res) => {
 
             res.write(html);
             res.end();
-        })
+        });
     } else {
         return true;
     }

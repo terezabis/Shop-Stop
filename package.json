@@ -17,6 +17,11 @@
   },
   "homepage": "https://github.com/terezabis/Shop-Stop#readme",
   "dependencies": {
-    "qs": "^6.5.2"
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "3.9.4",
+    "gulp-rename": "^1.2.3",
+    "multiparty": "^4.1.4",
+    "qs": "^6.5.2",
+    "shortid": "^2.2.8"
   }
 }
