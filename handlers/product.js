@@ -1,104 +1,108 @@
-const url = require('url');
-const database = require('../config/database.js');
-const fs = require('fs');
-const path = require('path');
-const qs = require('querystring');
-const multiparty = require('multiparty');
-const shortid = require('shortid');
+const url = require("url");
+// const database = require("../config/database.config");
+const fs = require("fs");
+const path = require("path");
+const qs = require("querystring");
+const multiparty = require("multiparty");
+const shortid = require("shortid");
+
+const Product = require("../models/Product");
+const Category = require("../models/Category");
 
 module.exports = (req, res) => {
+    req.pathname = req.pathname || url.parse(req.url).pathname
 
-    req.pathname = req.pathname || url.parse(req.url).pathname;
-
-    if (req.pathname === '/product/add' & req.method === 'GET') {
+    if (req.pathname === "/product/add" && req.method === "GET") {
         let filePath = path.normalize(
-            path.join(__dirname, '../views/products/add.html')
+            path.join(__dirname, "../views/products/add.html")
         );
+
         fs.readFile(filePath, (err, data) => {
             if (err) {
                 console.log(err);
+                res.writeHead(404, {
+                    "Content-Type": "text/plain"
+                });
+
+                res.write("404 not found!");
+                res.end();
+                return;
             }
 
-            res.write(data);
-            res.end();
-        });
-    } else if (req.pathname === '/product/add' && req.method === 'POST') {
+            Category.find().then((categories) => {
+                let replacement = '<select class="input-field" name="category"';
+                for (let category of categories) {
+                    replacement += `<option value="${category._id}">${category.name}</option>`;
+                }
+                replacement += "</select>";
+
+                let html = data.toString().replace("{categories}", replacement);
+
+                res.writeHead(200, {
+                    "Content-Type": "text/html"
+                });
+    
+                res.write(html);
+                res.end();
+            })
+        })
+    } else if (req.pathname === "/product/add" && req.method === "POST") {
         let form = new multiparty.Form();
         let product = {};
-
-        form.on('part', (part) => {
+        form.on("part", (part) => {
             if (part.filename) {
-                let dataString = '';
+                let dataString = "";
 
-                part.setEncoding('binary');
-                part.on('data', (data) => {
+                part.setEncoding("binary");
+                part.on("data", (data) => {
                     dataString += data;
                 });
-                part.on('end', () => {
-                    let fileName = shortid.generate();
-                    let filePath = '/content/images/' + fileName + '.jpg';
 
+                part.on("end", () => {
+                    console.log(part.filename);
+                    let extension = part.filename.split(".").pop();
+                    let fileName = shortid.generate();
+                    let filePath = `./content/images/${fileName}.${extension}`;
+                    
                     product.image = filePath;
-                    fs.writeFile(
-                        `.${filePath}`, dataString, { encoding: 'ascii' }, (err) => {
-                            if (err) {
-                                consol.log(err);
-                                return;
-                            }
+                    fs.writeFile(filePath, dataString, {encoding: "ascii"}, (err) => {
+                        if (err) {
+                            console.log(err);
+                            return;
                         }
-                    )
+                    });
                 });
+                    
             } else {
-                part.setEncoding('utf-8');
-                let field = '';
-                part.on('data', (data) => {
+                part.setEncoding("utf-8");
+                let field = "";
+                part.on("data", (data) => {
                     field += data;
                 });
 
-                part.on('end', () => {
+                part.on("end", () => {
                     product[part.name] = field;
                 });
             }
-
         });
 
-        form.on('close', () => {
-            database.products.add(product);
-            res.writeHead(302, {
-                Location: '/'
-            });
+        form.on("close", ()=> {
+            Product.create(product).then((insertedProduct) => {
+                Category.findById(product.category).then((category) => {
+                    category.products.push(insertedProduct._id);
+                    category.save();
 
-            res.end();
+                    res.writeHead(302, {
+                        "Location": "/"
+                    });
+        
+                    res.end();
+                });
+            });
         });
 
         form.parse(req);
-
-
-
-        /// Delete the code below?
-
-        /* let dataString = '';
-
-        req.on('data', (data) => {
-            dataString +=data;
-        });
-
-        req.on('end', (data) => {
-            let product = qs.parse(dataString);
-            database.products.add(product);
-
-            res.writeHead(302, {
-                Location: '/'
-            });
-    
-            res.end();
-        });
     } else {
-        res.writeHead(404, {
-            'Content-Type': 'text/plain'
-        });
-
-        res.write('Bad request!');
-        res.end(); */
+        return true;
     }
 }
