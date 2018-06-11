@@ -1,13 +1,39 @@
-const url = require("url");
-const fs = require("fs");
-const path = require("path");
-const qs = require("querystring");
-const multiparty = require("multiparty");
+//const url = require("url");
+//const fs = require("fs");
+//const path = require("path");
+//const qs = require("querystring");
+//const multiparty = require("multiparty");
 
 const Category = require("../models/Category");
 
-module.exports = (req, res) => {
-    req.pathname = req.pathname || url.parse(req.url).pathname;
+module.exports.addGet = (req, res) => {
+    res.render('category/add');
+}
+
+module.exports.addPost = (req,res) => {
+    let category = req.body;
+    Category.create(category).then(() => {
+        res.redirect('/');
+    });
+}
+    
+module.exports.productsByCategory = (req, res) => {
+    let categoryName = req.params.category;
+
+    Category.findOne({name: categoryName})
+        .populate('products')
+        .then((category) => {
+            if (!category) {
+                res.sendStatus(404);
+                return;
+            }
+
+            res.render('category/products', {category: category})
+        })
+
+};
+
+/* req.pathname = req.pathname || url.parse(req.url).pathname;
 
     if (req.pathname === "/category/add" && req.method === "GET") {
         fs.readFile("./views/category/add.html", (err, data) => {
@@ -48,4 +74,4 @@ module.exports = (req, res) => {
     } else {
         return true;
     }
-}
+} */
